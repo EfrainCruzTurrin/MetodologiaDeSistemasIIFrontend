@@ -84,7 +84,7 @@ export default function Navbar() {
 
       {isCliente && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-          <span style={labelStyle}>CLIENTE</span>
+          
           {clienteLinks.map(link => (
             <NavLink key={link.to} to={link.to} style={linkStyle}>
               <i className={`ti ${link.icon}`} style={{ fontSize: 14 }} />

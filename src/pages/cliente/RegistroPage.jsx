@@ -47,7 +47,7 @@ function validate(form) {
   if (!form.localidad.trim()) errors.localidad = 'La localidad es requerida.';
   if (!form.calle.trim()) errors.calle = 'La calle es requerida.';
   if (!form.numeroCalle || isNaN(parseInt(form.numeroCalle))) errors.numeroCalle = 'El número es requerido.';
-  if (!form.depto.trim()) errors.depto = 'El depto/piso es requerido.';
+  
   return errors;
 }
 
@@ -226,7 +226,7 @@ export default function RegistroPage() {
               </div>
 
               {/* Depto */}
-              <Field label="Piso / Depto *" error={errors.depto}>
+              <Field label="Piso / Depto " error={errors.depto}>
                 <input style={inputStyle(errors.depto)} value={form.depto} onChange={e => setField('depto', e.target.value)} placeholder="Piso 3 Depto B" />
               </Field>
             </div>

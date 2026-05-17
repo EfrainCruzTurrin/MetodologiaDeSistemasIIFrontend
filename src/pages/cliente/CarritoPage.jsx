@@ -74,7 +74,7 @@ function CartItem({ item, clienteId, onUpdate, onRemove }) {
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {item.nombre || item.productoNombre}
+          {item.nombre || item.productoNombre || item.producto?.nombre || '—'}
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-sec)' }}>
           ${precio.toFixed(2)} c/u
@@ -159,7 +159,7 @@ export default function CarritoPage() {
             <i className="ti ti-shopping-cart" style={{ marginRight: 8, color: 'var(--accent)' }} />
             Mi carrito
           </h1>
-          <p className="page-subtitle">Cliente ID: {clienteId}</p>
+          <p className="page-subtitle">{items.length > 0 ? `${items.length} producto(s)` : 'Tu carrito'}</p>
         </div>
         {items.length > 0 && (
           <span className="badge badge-accent">{items.length} ítem(s)</span>

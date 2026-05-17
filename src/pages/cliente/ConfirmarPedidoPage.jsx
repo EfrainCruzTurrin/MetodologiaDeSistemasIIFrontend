@@ -22,7 +22,7 @@ function validate(form, items) {
 }
 
 export default function ConfirmarPedidoPage() {
-  const { clienteId } = useCliente();
+  const { clienteId, carritoId } = useCliente();
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
@@ -75,6 +75,7 @@ export default function ConfirmarPedidoPage() {
     setSubmitting(true);
     const payload = {
       clienteId,
+      carritoId,  
       items: items.map(i => ({ productoId: i.productoId || i.id, cantidad: i.cantidad })),
       medioPago: form.medioPago,
       direccionEnvio: form.usarNuevaDireccion
@@ -270,7 +271,7 @@ export default function ConfirmarPedidoPage() {
                   return (
                     <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
                       <span style={{ color: 'var(--text-sec)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.nombre || item.productoNombre}
+                        {item.nombre || item.productoNombre || item.producto?.nombre}
                         <span style={{ color: 'var(--text-dim)' }}> ×{item.cantidad}</span>
                       </span>
                       <span style={{ fontWeight: 600, flexShrink: 0 }}>${(precio * (item.cantidad || 1)).toFixed(2)}</span>

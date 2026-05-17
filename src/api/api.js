@@ -102,10 +102,20 @@ export const confirmarPedido = (data) =>
   fetch(`${BASE}/api/pedidos`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify(data),
-  }).then(r => {
-    if (!r.ok) return r.json().then(e => Promise.reject(e));
-    return r.json();
+    body: JSON.stringify({
+      carritoId: data.carritoId,
+      direccionEnvioId: parseInt(data.direccionEnvio?.id, 10),
+      medioPago: data.medioPago,
+    }),
+  }).then(async r => {
+    if (!r.ok) {
+      const text = await r.text();
+      let msg;
+      try { msg = JSON.parse(text)?.message || text; } catch { msg = text; }
+      return Promise.reject(new Error(msg));
+    }
+    const text = await r.text();
+    try { return JSON.parse(text); } catch { return { mensaje: text }; }
   });
 
 export const actualizarEstadoPedido = (pedidoId, estado) =>
@@ -137,14 +147,23 @@ export const getKits = () =>
 
 // ── Direcciones de envío ──
 export const registrarDireccionEnvio = (clienteId, data) =>
-  fetch(`${BASE}/api/direcciones/${clienteId}`, {
+  fetch(`${BASE}/api/clientes/${clienteId}/direcciones-envio`, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      pais: data.pais,
+      provincia: data.provincia,
+      localidad: data.localidad,
+      calle: data.calle,
+      numeroCalle: parseInt(data.numero, 10),
+      pisoDepto: [data.piso, data.departamento].filter(Boolean).join(' ') || null,
+    }),
   }).then(r => {
     if (!r.ok) return r.json().then(e => Promise.reject(e));
     return r.json();
   });
 
 export const getDireccionesEnvio = (clienteId) =>
-  fetch(`${BASE}/api/direcciones/${clienteId}`, { headers: authHeaders() }).then(r => r.json());
+  fetch(`${BASE}/api/clientes/${clienteId}/direcciones-envio`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
