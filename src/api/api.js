@@ -21,7 +21,9 @@ export const login = (email, password) =>
 
 // ── Productos ──
 export const getProductos = () =>
-  fetch(`${BASE}/api/productos`, { headers: authHeaders() }).then(r => r.json());
+  fetch(`${BASE}/api/productos`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
 
 export const crearProducto = (data) =>
   fetch(`${BASE}/api/productos`, {
@@ -67,28 +69,33 @@ export const getCliente = (id) =>
   fetch(`${BASE}/api/clientes/${id}`, { headers: authHeaders() }).then(r => r.json());
 
 // ── Carrito ──
-export const getCarrito = (clienteId) =>
-  fetch(`${BASE}/api/carrito/${clienteId}`, { headers: authHeaders() }).then(r => r.json());
-
-export const agregarProductoCarrito = (clienteId, data) =>
-  fetch(`${BASE}/api/carrito/${clienteId}/productos`, {
+export const agregarProductoCarrito = (carritoId, data) =>
+  fetch(`${BASE}/api/carrito/${carritoId}/items`, {
     method: 'POST',
     headers: authHeaders(),
     body: JSON.stringify(data),
-  }).then(r => r.json());
+  }).then(r => {
+    if (!r.ok) throw new Error('Error al agregar');
+  });
 
-export const modificarCantidadCarrito = (clienteId, itemId, cantidad) =>
-  fetch(`${BASE}/api/carrito/${clienteId}/items/${itemId}`, {
+export const modificarCantidadCarrito = (carritoId, itemId, cantidad) =>
+  fetch(`${BASE}/api/carrito/items/${itemId}`, {
     method: 'PUT',
     headers: authHeaders(),
     body: JSON.stringify({ cantidad }),
-  }).then(r => r.json());
+  }).then(r => {
+    if (!r.ok) throw new Error('Stock insuficiente');
+    return { cantidad };
+  });
 
-export const eliminarItemCarrito = (clienteId, itemId) =>
-  fetch(`${BASE}/api/carrito/${clienteId}/items/${itemId}`, {
+export const eliminarItemCarrito = (carritoId, itemId) =>
+  fetch(`${BASE}/api/carrito/items/${itemId}`, {
     method: 'DELETE',
     headers: authHeaders(),
   });
+
+export const getCarrito = (carritoId) =>
+  fetch(`${BASE}/api/carrito/${carritoId}`, { headers: authHeaders() }).then(r => r.json());
 
 // ── Pedidos ──
 export const confirmarPedido = (data) =>

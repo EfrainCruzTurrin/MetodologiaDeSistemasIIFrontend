@@ -20,6 +20,7 @@ import RegistroPage from './pages/cliente/RegistroPage';
 import CarritoPage from './pages/cliente/CarritoPage';
 import ConfirmarPedidoPage from './pages/cliente/ConfirmarPedidoPage';
 import DireccionEnvioPage from './pages/cliente/DireccionEnvioPage';
+import CatalogoPage from './pages/cliente/CatalogoPage';
 
 function RutaAdmin({ children }) {
   const { isLoggedIn, isAdmin } = useCliente();
@@ -60,10 +61,11 @@ export default function App() {
           <Route path="/admin/pedidos"         element={<RutaAdmin><GestionPedidosPage /></RutaAdmin>} />
 
           {/* Cliente */}
-          <Route path="/catalogo" element={<div style={{padding:40, color:'var(--text)'}}>Catálogo próximamente</div>} />
+          <Route path="/catalogo" element={<RutaCliente><CatalogoPage /></RutaCliente>} />
           <Route path="/carrito"          element={<RutaCliente><CarritoPage /></RutaCliente>} />
           <Route path="/confirmar-pedido" element={<RutaCliente><ConfirmarPedidoPage /></RutaCliente>} />
           <Route path="/direccion-envio"  element={<RutaCliente><DireccionEnvioPage /></RutaCliente>} />
+          
 
           {/* Default */}
           <Route path="/" element={<Navigate to="/login" replace />} />
