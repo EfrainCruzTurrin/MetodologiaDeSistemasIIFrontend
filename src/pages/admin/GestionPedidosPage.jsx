@@ -28,11 +28,63 @@ function EstadoBadge({ estado }) {
   );
 }
 
+function DetallePedidoModal({ pedido, onClose }) {
+  if (!pedido) return null;
+  return (
+    <Modal
+      isOpen={!!pedido}
+      title={`Pedido #${pedido.id}`}
+      onCancel={onClose}
+      confirmLabel="Cerrar"
+      confirmVariant="accent"
+      onConfirm={onClose}
+    >
+      <div style={{ fontSize: 12, color: 'var(--text-sec)', marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 16, marginBottom: 8, flexWrap: 'wrap' }}>
+          <span><strong style={{ color: 'var(--text)' }}>Cliente:</strong> {pedido.clienteNombre || '—'}</span>
+          <span><strong style={{ color: 'var(--text)' }}>Fecha:</strong> {pedido.fecha ? new Date(pedido.fecha).toLocaleDateString('es-AR') : '—'}</span>
+          <span><strong style={{ color: 'var(--text)' }}>Dirección:</strong> {pedido.direccionEnvio || '—'}</span>
+        </div>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <span><strong style={{ color: 'var(--text)' }}>Medio de pago:</strong> {pedido.medioPago || '—'}</span>
+          <span><strong style={{ color: 'var(--text)' }}>Estado:</strong> <EstadoBadge estado={pedido.estado} /></span>
+        </div>
+      </div>
+
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--border2)' }}>
+            <th style={{ textAlign: 'left', padding: '6px 4px', color: 'var(--text-sec)', fontWeight: 600 }}>Producto</th>
+            <th style={{ textAlign: 'center', padding: '6px 4px', color: 'var(--text-sec)', fontWeight: 600 }}>Cant.</th>
+            <th style={{ textAlign: 'right', padding: '6px 4px', color: 'var(--text-sec)', fontWeight: 600 }}>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pedido.items?.map((item, i) => (
+            <tr key={item.id ?? i} style={{ borderBottom: '1px solid var(--border)' }}>
+              <td style={{ padding: '7px 4px', color: 'var(--text)' }}>{item.productoNombre}</td>
+              <td style={{ padding: '7px 4px', textAlign: 'center', color: 'var(--text-sec)' }}>x{item.cantidad}</td>
+              <td style={{ padding: '7px 4px', textAlign: 'right', color: 'var(--accent)', fontWeight: 700 }}>${parseFloat(item.subtotal || 0).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colSpan={2} style={{ padding: '8px 4px', textAlign: 'right', fontWeight: 700, color: 'var(--text)', fontSize: 13 }}>Total</td>
+            <td style={{ padding: '8px 4px', textAlign: 'right', fontWeight: 700, color: 'var(--accent)', fontSize: 13 }}>${parseFloat(pedido.total || 0).toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </Modal>
+  );
+}
+
 export default function GestionPedidosPage() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [confirm, setConfirm] = useState(null); // {pedidoId, nuevoEstado, label}
+  const [confirm, setConfirm] = useState(null);
   const [transitioning, setTransitioning] = useState(null);
+  const [detalle, setDetalle] = useState(null); // pedido seleccionado para ver detalle
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -86,7 +138,6 @@ export default function GestionPedidosPage() {
         <span className="badge badge-accent">{pedidos.length} pedidos</span>
       </div>
 
-      {/* Legend */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         {Object.entries(ESTADO_CONFIG).map(([key, cfg]) => (
           <span key={key} className={`badge ${cfg.badgeClass}`}>
@@ -124,13 +175,20 @@ export default function GestionPedidosPage() {
                   <tr key={p.id}>
                     <td style={{ color: 'var(--text-dim)', fontSize: 11, fontWeight: 700 }}>#{p.id}</td>
                     <td style={{ fontWeight: 600 }}>
-                      {p.cliente?.nombre || p.clienteNombre || <span style={{ color: 'var(--text-dim)' }}>—</span>}
+                      {p.clienteNombre || <span style={{ color: 'var(--text-dim)' }}>—</span>}
                     </td>
                     <td style={{ color: 'var(--text-sec)', fontSize: 12 }}>
                       {p.fecha ? new Date(p.fecha).toLocaleDateString('es-AR') : '—'}
                     </td>
-                    <td style={{ color: 'var(--text-sec)', fontSize: 12 }}>
-                      {p.items?.length ?? p.cantidad ?? '—'} ítem(s)
+                    <td style={{ fontSize: 12 }}>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setDetalle(p)}
+                        style={{ fontSize: 11, padding: '2px 8px' }}
+                      >
+                        <i className="ti ti-eye" style={{ fontSize: 11 }} />
+                        {p.items?.length ?? '—'} ítem(s)
+                      </button>
                     </td>
                     <td style={{ color: 'var(--accent)', fontWeight: 700 }}>
                       ${parseFloat(p.total || 0).toFixed(2)}
@@ -168,6 +226,8 @@ export default function GestionPedidosPage() {
           </table>
         </div>
       )}
+
+      <DetallePedidoModal pedido={detalle} onClose={() => setDetalle(null)} />
 
       <Modal
         isOpen={!!confirm}

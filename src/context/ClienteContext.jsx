@@ -42,8 +42,9 @@ export function ClienteProvider({ children }) {
       token: auth?.token || null,
       nombre: auth?.nombre || null,
       isLoggedIn: !!auth,
-      isAdmin: auth?.rol === 'ADMIN' || auth?.rol === 'VENDEDOR',
-      isCliente: auth?.rol === 'CLIENTE',
+      isAdmin:    auth?.rol === 'ADMIN',      // ← solo ADMIN
+      isVendedor: auth?.rol === 'VENDEDOR',   // ← nuevo
+      isCliente:  auth?.rol === 'CLIENTE',
     }}>
       {children}
     </ClienteContext.Provider>
