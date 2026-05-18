@@ -2,11 +2,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useCliente } from '../../context/ClienteContext';
 
 const adminLinks = [
-  { to: '/admin/productos', label: 'Productos', icon: 'ti-package' },
-  { to: '/admin/crear-producto', label: 'Crear Producto', icon: 'ti-plus' },
-  { to: '/admin/baja-producto', label: 'Dar de Baja', icon: 'ti-trash' },
-  { to: '/admin/kits', label: 'Kits', icon: 'ti-box-multiple' },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: 'ti-clipboard-list' },
+  { to: '/admin/productos',       label: 'Productos',       icon: 'ti-package' },
+  { to: '/admin/crear-producto',  label: 'Crear Producto',  icon: 'ti-plus' },
+  { to: '/admin/baja-producto',   label: 'Dar de Baja',     icon: 'ti-trash' },
+  { to: '/admin/importar-imagen', label: 'Importar Imagen', icon: 'ti-photo-up' },  // ← nuevo
+  { to: '/admin/kits',            label: 'Kits',            icon: 'ti-box-multiple' },
+  { to: '/admin/pedidos',         label: 'Pedidos',         icon: 'ti-clipboard-list' },
 ];
 
 const clienteLinks = [

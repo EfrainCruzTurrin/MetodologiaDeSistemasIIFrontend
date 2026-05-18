@@ -36,6 +36,13 @@ function ProductoCard({ producto, onAgregar }) {
   return (
     <div style={styles.card}>
       <div style={{ ...styles.cardAccent, background: color }} />
+      {producto.imagenUrl && (
+        <img
+          src={producto.imagenUrl}
+          alt={producto.nombre}
+          style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }}
+        />
+      )}
       <div style={styles.cardBody}>
         <div style={styles.cardHeader}>
           <span style={{ ...styles.marcaBadge, color, borderColor: color + '55', background: color + '18' }}>
@@ -72,9 +79,9 @@ function KitCard({ kit, onAgregar, stockMap }) {
   // Calcular stock disponible del kit: mínimo de floor(stockProducto / cantidad)
   const stockKit = kit.productos?.length
     ? Math.min(...kit.productos.map(kp => {
-        const stock = stockMap[kp.productoId] ?? 0;
-        return Math.floor(stock / (kp.cantidad || 1));
-      }))
+      const stock = stockMap[kp.productoId] ?? 0;
+      return Math.floor(stock / (kp.cantidad || 1));
+    }))
     : 0;
 
   const sinStock = stockKit === 0;
