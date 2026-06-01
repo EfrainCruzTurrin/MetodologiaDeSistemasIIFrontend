@@ -128,6 +128,19 @@ export const actualizarEstadoPedido = (pedidoId, estado) =>
     return r.json();
   });
 
+  export const getReporteProductosMasVendidos = (mes, anio) =>
+  fetch(
+    `${BASE}/api/pedidos/reporte?mes=${mes}&anio=${anio}`,
+    {
+      headers: authHeaders()
+    }
+  ).then(r => {
+    if (!r.ok) {
+      return r.json().then(e => Promise.reject(e));
+    }
+    return r.json();
+  });
+
 export const getPedidos = () =>
   fetch(`${BASE}/api/pedidos`, { headers: authHeaders() }).then(r => r.json());
 

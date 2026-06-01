@@ -14,6 +14,7 @@ import BajaProductoPage from './pages/admin/BajaProductoPage';
 import ImportarImagenPage from './pages/admin/ImportarImagenPage';
 import KitsPage from './pages/admin/KitsPage';
 import GestionPedidosPage from './pages/admin/GestionPedidosPage';
+import ReporteVentasPage from './pages/admin/ReporteVentasPage';
 
 // Cliente pages
 import RegistroPage from './pages/cliente/RegistroPage';
@@ -59,6 +60,7 @@ export default function App() {
           <Route path="/admin/importar-imagen" element={<RutaAdmin><ImportarImagenPage /></RutaAdmin>} />
           <Route path="/admin/kits"            element={<RutaAdmin><KitsPage /></RutaAdmin>} />
           <Route path="/admin/pedidos"         element={<RutaAdmin><GestionPedidosPage /></RutaAdmin>} />
+          <Route path="/admin/reporte-ventas"  element={<RutaAdmin><ReporteVentasPage /></RutaAdmin>} />
 
           {/* Cliente */}
           <Route path="/catalogo" element={<RutaCliente><CatalogoPage /></RutaCliente>} />
