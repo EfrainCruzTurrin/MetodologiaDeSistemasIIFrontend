@@ -180,3 +180,17 @@ export const getDireccionesEnvio = (clienteId) =>
   fetch(`${BASE}/api/clientes/${clienteId}/direcciones-envio`, {
     headers: authHeaders(),
   }).then(r => r.json());
+
+  // ── Reporte Stock Mínimo ──
+  export const obtenerReporteStock = (porcentaje) =>
+    fetch(
+      `${BASE}/api/reportes/stock-minimo?porcentaje=${porcentaje}`,
+      {
+        headers: authHeaders(),
+      }
+    ).then(r => {
+      if (!r.ok) {
+        return r.json().then(e => Promise.reject(e));
+      }
+      return r.json();
+    });
