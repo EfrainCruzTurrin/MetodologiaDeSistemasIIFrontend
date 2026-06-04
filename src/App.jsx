@@ -8,6 +8,7 @@ import Navbar from './components/shared/Navbar';
 import LoginPage from './pages/auth/LoginPage';
 
 // Admin pages
+import ReporteStockPage from './pages/admin/ReporteStockPage';
 import ProductosPage from './pages/admin/ProductosPage';
 import CrearProductoPage from './pages/admin/CrearProductoPage';
 import BajaProductoPage from './pages/admin/BajaProductoPage';
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/registro" element={<RutaPublica><RegistroPage /></RutaPublica>} />
 
           {/* Admin */}
+          <Route path="/admin/reporte-stock" element={<RutaAdmin><ReporteStockPage /></RutaAdmin>} />
           <Route path="/admin/productos"       element={<RutaAdmin><ProductosPage /></RutaAdmin>} />
           <Route path="/admin/crear-producto"  element={<RutaAdmin><CrearProductoPage /></RutaAdmin>} />
           <Route path="/admin/baja-producto"   element={<RutaAdmin><BajaProductoPage /></RutaAdmin>} />
