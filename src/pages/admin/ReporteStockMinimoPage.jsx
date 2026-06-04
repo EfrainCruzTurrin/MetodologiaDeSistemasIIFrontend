@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { obtenerReporteStock } from "../../api/reportes";
+import { obtenerReporteStock } from "../../api/api";
 
 function ReporteStockMinimoPage() {
 
