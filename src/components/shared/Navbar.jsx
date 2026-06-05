@@ -7,6 +7,8 @@ const adminLinks = [
   { to: '/admin/baja-producto', label: 'Dar de Baja', icon: 'ti-trash' },
   { to: '/admin/kits', label: 'Kits', icon: 'ti-box-multiple' },
   { to: '/admin/pedidos', label: 'Pedidos', icon: 'ti-clipboard-list' },
+  { to: '/admin/reporte-ventas', label: 'Reporte Ventas', icon: 'ti-chart-bar' },
+  { to: '/admin/reporte-stock', label: 'Reporte Stock', icon: 'ti-alert-triangle' },
 ];
 
 const clienteLinks = [
