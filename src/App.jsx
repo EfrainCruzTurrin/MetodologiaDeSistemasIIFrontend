@@ -8,12 +8,14 @@ import Navbar from './components/shared/Navbar';
 import LoginPage from './pages/auth/LoginPage';
 
 // Admin pages
+import ReporteStockPage from './pages/admin/ReporteStockPage';
 import ProductosPage from './pages/admin/ProductosPage';
 import CrearProductoPage from './pages/admin/CrearProductoPage';
 import BajaProductoPage from './pages/admin/BajaProductoPage';
 import ImportarImagenPage from './pages/admin/ImportarImagenPage';
 import KitsPage from './pages/admin/KitsPage';
 import GestionPedidosPage from './pages/admin/GestionPedidosPage';
+import ReporteVentasPage from './pages/admin/ReporteVentasPage';
 
 // Vendedor pages
 import VendedorPedidosPage from './pages/vendedor/VendedorPedidosPage';
@@ -70,12 +72,14 @@ export default function App() {
           <Route path="/registro" element={<RutaPublica><RegistroPage /></RutaPublica>} />
 
           {/* Admin */}
+          <Route path="/admin/reporte-stock" element={<RutaAdmin><ReporteStockPage /></RutaAdmin>} />
           <Route path="/admin/productos"       element={<RutaAdmin><ProductosPage /></RutaAdmin>} />
           <Route path="/admin/crear-producto"  element={<RutaAdmin><CrearProductoPage /></RutaAdmin>} />
           <Route path="/admin/baja-producto"   element={<RutaAdmin><BajaProductoPage /></RutaAdmin>} />
           <Route path="/admin/importar-imagen" element={<RutaAdmin><ImportarImagenPage /></RutaAdmin>} />
           <Route path="/admin/kits"            element={<RutaAdmin><KitsPage /></RutaAdmin>} />
           <Route path="/admin/pedidos"         element={<RutaAdmin><GestionPedidosPage /></RutaAdmin>} />
+          <Route path="/admin/reporte-ventas"  element={<RutaAdmin><ReporteVentasPage /></RutaAdmin>} />
 
           {/* Vendedor */}
           <Route path="/vendedor/pedidos" element={<RutaVendedor><VendedorPedidosPage /></RutaVendedor>} />

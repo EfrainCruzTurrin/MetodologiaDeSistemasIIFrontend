@@ -2,12 +2,22 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useCliente } from '../../context/ClienteContext';
 
 const adminLinks = [
+<<<<<<< HEAD
   { to: '/admin/productos',       label: 'Productos',       icon: 'ti-package' },
   { to: '/admin/crear-producto',  label: 'Crear Producto',  icon: 'ti-plus' },
   { to: '/admin/baja-producto',   label: 'Dar de Baja',     icon: 'ti-trash' },
   { to: '/admin/importar-imagen', label: 'Importar Imagen', icon: 'ti-photo-up' },  // ← nuevo
   { to: '/admin/kits',            label: 'Kits',            icon: 'ti-box-multiple' },
   { to: '/admin/pedidos',         label: 'Pedidos',         icon: 'ti-clipboard-list' },
+=======
+  { to: '/admin/productos', label: 'Productos', icon: 'ti-package' },
+  { to: '/admin/crear-producto', label: 'Crear Producto', icon: 'ti-plus' },
+  { to: '/admin/baja-producto', label: 'Dar de Baja', icon: 'ti-trash' },
+  { to: '/admin/kits', label: 'Kits', icon: 'ti-box-multiple' },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: 'ti-clipboard-list' },
+  { to: '/admin/reporte-ventas', label: 'Reporte Ventas', icon: 'ti-chart-bar' },
+  { to: '/admin/reporte-stock', label: 'Reporte Stock', icon: 'ti-alert-triangle' },
+>>>>>>> 789469eeadb1e1bf4a414aa388025c54a4bd4812
 ];
 
 const clienteLinks = [
