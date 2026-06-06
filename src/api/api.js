@@ -194,3 +194,12 @@ export const getDireccionesEnvio = (clienteId) =>
       }
       return r.json();
     });
+
+    export const validarCupon = (codigo) =>
+  fetch(`/api/cupones/validar/${codigo}`, { headers: authHeaders() }).then(r => r.json());
+
+export const getCuponPorCodigo = (codigo) =>
+  fetch(`/api/cupones/codigo/${codigo}`, { headers: authHeaders() }).then(r => {
+    if (!r.ok) throw new Error('Cupón no encontrado');
+    return r.json();
+  });
