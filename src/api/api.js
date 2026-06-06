@@ -128,7 +128,7 @@ export const actualizarEstadoPedido = (pedidoId, estado) =>
     return r.json();
   });
 
-  export const getReporteProductosMasVendidos = (mes, anio) =>
+export const getReporteProductosMasVendidos = (mes, anio) =>
   fetch(
     `${BASE}/api/pedidos/reporte?mes=${mes}&anio=${anio}`,
     {
@@ -181,16 +181,28 @@ export const getDireccionesEnvio = (clienteId) =>
     headers: authHeaders(),
   }).then(r => r.json());
 
-  // ── Reporte Stock Mínimo ──
-  export const obtenerReporteStock = (porcentaje) =>
-    fetch(
-      `${BASE}/api/reportes/stock-minimo?porcentaje=${porcentaje}`,
-      {
-        headers: authHeaders(),
-      }
-    ).then(r => {
-      if (!r.ok) {
-        return r.json().then(e => Promise.reject(e));
-      }
-      return r.json();
-    });
+// ── Reporte Stock Mínimo ──
+export const obtenerReporteStock = (porcentaje) =>
+  fetch(
+    `${BASE}/api/reportes/stock-minimo?porcentaje=${porcentaje}`,
+    {
+      headers: authHeaders(),
+    }
+  ).then(r => {
+    if (!r.ok) {
+      return r.json().then(e => Promise.reject(e));
+    }
+    return r.json();
+  });
+
+export const validarCupon = async (codigo) => {
+  const res = await fetch(`/api/cupones/validar/${codigo}`);
+  if (!res.ok) throw new Error('Error al validar cupón');
+  return res.json(); // boolean
+};
+
+export const getCuponPorCodigo = async (codigo) => {
+  const res = await fetch(`/api/cupones/codigo/${codigo}`);
+  if (!res.ok) throw new Error('Cupón no encontrado');
+  return res.json(); // objeto Cupon con tipo_cupon, montoDescuento o porcentaje
+};

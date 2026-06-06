@@ -229,7 +229,7 @@ export default function KitsPage() {
                   <td style={{ color: 'var(--accent)', fontWeight: 600 }}>${parseFloat(k.precio || 0).toFixed(2)}</td>
                   <td>
                     <span style={{ color: 'var(--text-sec)', fontSize: 12 }}>
-                      {k.componentes?.length ?? 0} componente(s)
+                      {k.productos?.length ?? 0} componente(s)
                     </span>
                   </td>
                 </tr>
