@@ -19,6 +19,7 @@ import ReporteVentasPage from './pages/admin/ReporteVentasPage';
 
 // Vendedor pages
 import VendedorPedidosPage from './pages/vendedor/VendedorPedidosPage';
+import CuponesVendedorPage from './pages/vendedor/CuponesVendedorPage';
 
 // Cliente pages
 import RegistroPage from './pages/cliente/RegistroPage';
@@ -83,6 +84,7 @@ export default function App() {
 
           {/* Vendedor */}
           <Route path="/vendedor/pedidos" element={<RutaVendedor><VendedorPedidosPage /></RutaVendedor>} />
+          <Route path="/vendedor/cupones" element={<RutaVendedor><CuponesVendedorPage /></RutaVendedor>} />
 
           {/* Cliente */}
           <Route path="/catalogo"          element={<RutaCliente><CatalogoPage /></RutaCliente>} />

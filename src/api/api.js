@@ -195,11 +195,57 @@ export const getDireccionesEnvio = (clienteId) =>
       return r.json();
     });
 
-    export const validarCupon = (codigo) =>
-  fetch(`/api/cupones/validar/${codigo}`, { headers: authHeaders() }).then(r => r.json());
 
-export const getCuponPorCodigo = (codigo) =>
-  fetch(`/api/cupones/codigo/${codigo}`, { headers: authHeaders() }).then(r => {
-    if (!r.ok) throw new Error('Cupón no encontrado');
+  // Cupones - Vendedor
+export const crearCuponMonto = (data, vendedorId) =>
+  fetch(`${BASE}/api/cupones/monto`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'X-Usuario-Id': vendedorId },
+    body: JSON.stringify(data),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
     return r.json();
   });
+ 
+export const crearCuponPorcentaje = (data, vendedorId) =>
+  fetch(`${BASE}/api/cupones/porcentaje`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'X-Usuario-Id': vendedorId },
+    body: JSON.stringify(data),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+ 
+export const getCuponesPorVendedor = (vendedorId) =>
+  fetch(`${BASE}/api/cupones/vendedor/${vendedorId}`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
+ 
+export const asignarClientesCupon = (cuponId, clienteIds) =>
+  fetch(`${BASE}/api/cupones/${cuponId}/asignar-clientes`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ clienteIds }),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+ 
+// Necesita un endpoint GET /api/clientes en el backend
+export const getClientes = () =>
+  fetch(`${BASE}/api/clientes`, { headers: authHeaders() }).then(r => r.json());
+ 
+// ── Reemplazar las dos funciones existentes de cupón (usan BASE relativo) ────
+// Buscá estas dos al final de tu api.js actual y reemplazalas:
+ 
+export const validarCupon = (codigo) =>
+  fetch(`${BASE}/api/cupones/validar/${codigo}`, { headers: authHeaders() })
+    .then(r => r.json());
+ 
+export const getCuponPorCodigo = (codigo) =>
+  fetch(`${BASE}/api/cupones/codigo/${codigo}`, { headers: authHeaders() })
+    .then(r => {
+      if (!r.ok) throw new Error('Cupón no encontrado');
+      return r.json();
+    });

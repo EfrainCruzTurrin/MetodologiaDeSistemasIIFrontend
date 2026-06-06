@@ -2,20 +2,26 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useCliente } from '../../context/ClienteContext';
 
 const adminLinks = [
-  { to: '/admin/productos', label: 'Productos', icon: 'ti-package' },
-  { to: '/admin/crear-producto', label: 'Crear Producto', icon: 'ti-plus' },
-  { to: '/admin/baja-producto', label: 'Dar de Baja', icon: 'ti-trash' },
-  { to: '/admin/kits', label: 'Kits', icon: 'ti-box-multiple' },
-  { to: '/admin/pedidos', label: 'Pedidos', icon: 'ti-clipboard-list' },
-  { to: '/admin/reporte-ventas', label: 'Reporte Ventas', icon: 'ti-chart-bar' },
-  { to: '/admin/reporte-stock', label: 'Reporte Stock', icon: 'ti-alert-triangle' },
+  { to: '/admin/productos',       label: 'Productos',       icon: 'ti-package'         },
+  { to: '/admin/crear-producto',  label: 'Crear Producto',  icon: 'ti-plus'            },
+  { to: '/admin/baja-producto',   label: 'Dar de Baja',     icon: 'ti-trash'           },
+  { to: '/admin/importar-imagen', label: 'Importar Imagen', icon: 'ti-photo'           }, // ← estaba faltando
+  { to: '/admin/kits',            label: 'Kits',            icon: 'ti-box-multiple'    },
+  { to: '/admin/pedidos',         label: 'Pedidos',         icon: 'ti-clipboard-list'  },
+  { to: '/admin/reporte-ventas',  label: 'Reporte Ventas',  icon: 'ti-chart-bar'       },
+  { to: '/admin/reporte-stock',   label: 'Reporte Stock',   icon: 'ti-alert-triangle'  },
+];
+
+const vendedorLinks = [
+  { to: '/vendedor/pedidos',  label: 'Pedidos', icon: 'ti-clipboard-list' },
+  { to: '/vendedor/cupones',  label: 'Cupones', icon: 'ti-ticket'         },
 ];
 
 const clienteLinks = [
-  { to: '/catalogo', label: 'Catálogo', icon: 'ti-shopping-bag' },
-  { to: '/carrito', label: 'Carrito', icon: 'ti-shopping-cart' },
-  { to: '/confirmar-pedido', label: 'Confirmar Pedido', icon: 'ti-check' },
-  { to: '/direccion-envio', label: 'Dirección de Envío', icon: 'ti-map-pin' },
+  { to: '/catalogo',         label: 'Catálogo',          icon: 'ti-shopping-bag'  },
+  { to: '/carrito',          label: 'Carrito',            icon: 'ti-shopping-cart' },
+  { to: '/confirmar-pedido', label: 'Confirmar Pedido',   icon: 'ti-check'         },
+  { to: '/direccion-envio',  label: 'Dirección de Envío', icon: 'ti-map-pin'       },
 ];
 
 const linkStyle = ({ isActive }) => ({
@@ -34,7 +40,7 @@ const linkStyle = ({ isActive }) => ({
 });
 
 export default function Navbar() {
-  const { isLoggedIn, isAdmin, isCliente, nombre, logout } = useCliente();
+  const { isLoggedIn, isAdmin, isCliente, isVendedor, nombre, logout } = useCliente();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -60,7 +66,7 @@ export default function Navbar() {
     <nav style={navStyle}>
       {/* Logo */}
       <NavLink
-        to={isAdmin ? '/admin/productos' : '/catalogo'}
+        to={isAdmin ? '/admin/productos' : isVendedor ? '/vendedor/pedidos' : '/catalogo'}
         style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 24, flexShrink: 0, textDecoration: 'none' }}
       >
         <i className="ti ti-droplet-filled" style={{ color: 'var(--accent)', fontSize: 18 }} />
@@ -84,9 +90,20 @@ export default function Navbar() {
         </div>
       )}
 
+      {isVendedor && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+          <span style={labelStyle}>VENDEDOR</span>
+          {vendedorLinks.map(link => (
+            <NavLink key={link.to} to={link.to} style={linkStyle}>
+              <i className={`ti ${link.icon}`} style={{ fontSize: 14 }} />
+              {link.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+
       {isCliente && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-          
           {clienteLinks.map(link => (
             <NavLink key={link.to} to={link.to} style={linkStyle}>
               <i className={`ti ${link.icon}`} style={{ fontSize: 14 }} />
