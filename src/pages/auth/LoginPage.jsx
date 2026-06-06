@@ -25,11 +25,9 @@ export default function LoginPage() {
     try {
       const data = await loginApi(form.email, form.password);
       login(data);
-      if (data.rol === 'ADMIN' || data.rol === 'VENDEDOR') {
-        navigate('/admin/productos');
-      } else {
-        navigate('/catalogo');
-      }
+      if (data.rol === 'ADMIN') navigate('/admin/productos');
+      else if (data.rol === 'VENDEDOR') navigate('/vendedor/pedidos');
+      else navigate('/catalogo');
     } catch (err) {
       setError(err?.message || 'Credenciales inválidas.');
     } finally {

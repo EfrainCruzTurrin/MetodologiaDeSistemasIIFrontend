@@ -122,10 +122,10 @@ export const actualizarEstadoPedido = (pedidoId, estado) =>
   fetch(`${BASE}/api/pedidos/${pedidoId}/estado`, {
     method: 'PATCH',
     headers: authHeaders(),
-    body: JSON.stringify({ estado }),
+    body: JSON.stringify({ nuevoEstado: estado }),
   }).then(r => {
     if (!r.ok) return r.json().then(e => Promise.reject(e));
-    return r.json();
+    return {};
   });
 
 export const getReporteProductosMasVendidos = (mes, anio) =>
@@ -181,6 +181,7 @@ export const getDireccionesEnvio = (clienteId) =>
     headers: authHeaders(),
   }).then(r => r.json());
 
+<<<<<<< HEAD
 // ── Reporte Stock Mínimo ──
 export const obtenerReporteStock = (porcentaje) =>
   fetch(
@@ -206,3 +207,73 @@ export const getCuponPorCodigo = async (codigo) => {
   if (!res.ok) throw new Error('Cupón no encontrado');
   return res.json(); // objeto Cupon con tipo_cupon, montoDescuento o porcentaje
 };
+=======
+  // ── Reporte Stock Mínimo ──
+  export const obtenerReporteStock = (porcentaje) =>
+    fetch(
+      `${BASE}/api/reportes/stock-minimo?porcentaje=${porcentaje}`,
+      {
+        headers: authHeaders(),
+      }
+    ).then(r => {
+      if (!r.ok) {
+        return r.json().then(e => Promise.reject(e));
+      }
+      return r.json();
+    });
+
+
+  // Cupones - Vendedor
+export const crearCuponMonto = (data, vendedorId) =>
+  fetch(`${BASE}/api/cupones/monto`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'X-Usuario-Id': vendedorId },
+    body: JSON.stringify(data),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+ 
+export const crearCuponPorcentaje = (data, vendedorId) =>
+  fetch(`${BASE}/api/cupones/porcentaje`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'X-Usuario-Id': vendedorId },
+    body: JSON.stringify(data),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+ 
+export const getCuponesPorVendedor = (vendedorId) =>
+  fetch(`${BASE}/api/cupones/vendedor/${vendedorId}`, {
+    headers: authHeaders(),
+  }).then(r => r.json());
+ 
+export const asignarClientesCupon = (cuponId, clienteIds) =>
+  fetch(`${BASE}/api/cupones/${cuponId}/asignar-clientes`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ clienteIds }),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+ 
+// Necesita un endpoint GET /api/clientes en el backend
+export const getClientes = () =>
+  fetch(`${BASE}/api/clientes`, { headers: authHeaders() }).then(r => r.json());
+ 
+// ── Reemplazar las dos funciones existentes de cupón (usan BASE relativo) ────
+// Buscá estas dos al final de tu api.js actual y reemplazalas:
+ 
+export const validarCupon = (codigo) =>
+  fetch(`${BASE}/api/cupones/validar/${codigo}`, { headers: authHeaders() })
+    .then(r => r.json());
+ 
+export const getCuponPorCodigo = (codigo) =>
+  fetch(`${BASE}/api/cupones/codigo/${codigo}`, { headers: authHeaders() })
+    .then(r => {
+      if (!r.ok) throw new Error('Cupón no encontrado');
+      return r.json();
+    });
+>>>>>>> 16e9a19131f6a5e61bb2bfb41a77089d6c18da3a
