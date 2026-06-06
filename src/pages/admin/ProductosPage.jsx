@@ -59,7 +59,7 @@ export default function ProductosPage() {
       if (filters.descripcion && !desc.includes(filters.descripcion.toLowerCase())) return false;
       if (filters.precioMin !== '' && p.precio < parseFloat(filters.precioMin)) return false;
       if (filters.precioMax !== '' && p.precio > parseFloat(filters.precioMax)) return false;
-      if (filters.stockMin !== '' && p.stock < parseInt(filters.stockMin)) return false;
+      if (filters.stockMin !== '' && stockActual < parseInt(filters.stockMin)) return false;
       return true;
     });
   }, [productos, filters]);
@@ -76,8 +76,8 @@ export default function ProductosPage() {
   }, [filtered, sortCol, sortDir]);
 
   const stats = useMemo(() => {
-    const sinStock = productos.filter(p => p.stock === 0).length;
-    const stockBajo = productos.filter(p => p.stock > 0 && p.stock <= 5).length;
+    const sinStock = productos.filter(p => p.stockActual === 0).length;
+    const stockBajo = productos.filter(p => p.stockActual > 0 && p.stockActual <= 5).length;
     const total = productos.length;
     const promedio = total > 0
       ? (productos.reduce((sum, p) => sum + (p.precio || 0), 0) / total).toFixed(2)
@@ -213,7 +213,7 @@ export default function ProductosPage() {
                   <td style={{ fontWeight: 600, color: 'var(--accent)' }}>
                     ${parseFloat(p.precio || 0).toFixed(2)}
                   </td>
-                  <td><StockBadge stock={p.stock ?? 0} /></td>
+                  <td><StockBadge stock={p.stockActual ?? 0} /></td>
                 </tr>
               ))}
             </tbody>

@@ -100,8 +100,8 @@ export default function BajaProductoPage() {
                     ${parseFloat(p.precio || 0).toFixed(2)}
                   </td>
                   <td>
-                    <span style={{ color: p.stock === 0 ? 'var(--danger)' : p.stock <= 5 ? 'var(--warning)' : 'var(--success)' }}>
-                      {p.stock ?? 0}
+                    <span style={{ color: p.stockActual === 0 ? 'var(--danger)' : p.stock <= 5 ? 'var(--warning)' : 'var(--success)' }}>
+                      {p.stockActual ?? 0}
                     </span>
                   </td>
                   <td>

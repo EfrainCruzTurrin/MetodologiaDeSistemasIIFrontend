@@ -122,10 +122,10 @@ export const actualizarEstadoPedido = (pedidoId, estado) =>
   fetch(`${BASE}/api/pedidos/${pedidoId}/estado`, {
     method: 'PATCH',
     headers: authHeaders(),
-    body: JSON.stringify({ estado }),
+    body: JSON.stringify({ nuevoEstado: estado }),
   }).then(r => {
     if (!r.ok) return r.json().then(e => Promise.reject(e));
-    return r.json();
+    return {};
   });
 
   export const getReporteProductosMasVendidos = (mes, anio) =>
