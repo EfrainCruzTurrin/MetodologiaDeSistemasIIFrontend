@@ -36,7 +36,7 @@ function validate(form, items) {
   const errors = {};
   if (items.length === 0) errors.general = 'El carrito está vacío.';
   if (!form.medioPago) errors.medioPago = 'Seleccioná un medio de pago.';
-  if (!form.direccionId && !form.nuevaDireccion?.calle) errors.direccion = 'Indicá una dirección de envío.';
+if (!form.direccionId) errors.direccion = 'Indicá una dirección de envío.';
   if (form.medioPago === 'TARJETA') {
     if (!form.tarjetaNumero?.trim()) errors.tarjetaNumero = 'Número requerido.';
     if (!form.tarjetaNombre?.trim()) errors.tarjetaNombre = 'Nombre requerido.';
@@ -67,8 +67,6 @@ export default function ConfirmarPedidoPage() {
   const [form, setForm] = useState({
     medioPago: '',
     direccionId: '',
-    usarNuevaDireccion: false,
-    nuevaDireccion: { calle: '', numero: '' },
     tarjetaNumero: '',
     tarjetaNombre: '',
     tarjetaVenc: '',
@@ -170,9 +168,7 @@ export default function ConfirmarPedidoPage() {
       carritoId,
       items: items.map(i => ({ productoId: i.productoId || i.id, cantidad: i.cantidad })),
       medioPago: form.medioPago,
-      direccionEnvio: form.usarNuevaDireccion
-        ? form.nuevaDireccion
-        : { id: form.direccionId },
+      direccionEnvio: { id: form.direccionId },
       datosPago: form.medioPago === 'TARJETA' ? {
         numero:      form.tarjetaNumero,
         nombre:      form.tarjetaNombre,
@@ -264,7 +260,7 @@ export default function ConfirmarPedidoPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
                 {direcciones.map(d => (
                   <label key={d.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', padding: '10px 12px', border: `1px solid ${form.direccionId === String(d.id) && !form.usarNuevaDireccion ? 'var(--accent-border)' : 'var(--border2)'}`, borderRadius: 'var(--radius)', background: form.direccionId === String(d.id) && !form.usarNuevaDireccion ? 'var(--accent-dim)' : 'transparent' }}>
-                    <input type="radio" name="direccion" checked={form.direccionId === String(d.id) && !form.usarNuevaDireccion} onChange={() => { setField('direccionId', String(d.id)); setField('usarNuevaDireccion', false); }} style={{ marginTop: 2 }} />
+                    <input type="radio" name="direccion" checked={form.direccionId === String(d.id) && !form.usarNuevaDireccion} onChange={() => setField('direccionId', String(d.id))} style={{ marginTop: 2 }} />
                     <div style={{ fontSize: 13 }}>
                       <div style={{ fontWeight: 600 }}>{d.calle} {d.numero}</div>
                       <div style={{ color: 'var(--text-sec)', fontSize: 12 }}>{d.localidad}, {d.provincia}</div>
@@ -274,23 +270,7 @@ export default function ConfirmarPedidoPage() {
               </div>
             )}
 
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, marginBottom: form.usarNuevaDireccion ? 12 : 0 }}>
-              <input type="radio" name="direccion" checked={form.usarNuevaDireccion} onChange={() => { setField('usarNuevaDireccion', true); setField('direccionId', ''); }} />
-              Nueva dirección
-            </label>
-
-            {form.usarNuevaDireccion && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 10, marginTop: 8 }}>
-                <div className="field">
-                  <label>Calle *</label>
-                  <input value={form.nuevaDireccion.calle} onChange={e => setField('nuevaDireccion', { ...form.nuevaDireccion, calle: e.target.value })} placeholder="Av. Corrientes" />
-                </div>
-                <div className="field">
-                  <label>Número *</label>
-                  <input value={form.nuevaDireccion.numero} onChange={e => setField('nuevaDireccion', { ...form.nuevaDireccion, numero: e.target.value })} placeholder="1234" />
-                </div>
-              </div>
-            )}
+            
           </div>
 
           {/* Medio de pago */}
