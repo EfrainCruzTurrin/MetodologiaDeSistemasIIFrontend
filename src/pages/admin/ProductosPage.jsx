@@ -188,7 +188,7 @@ export default function ProductosPage() {
                   { key: 'nombre', label: 'Nombre' },
                   { key: 'descripcion', label: 'Descripción' },
                   { key: 'precio', label: 'Precio' },
-                  { key: 'stock', label: 'Stock' },
+                  { key: 'stockActual', label: 'Stock' },
                 ].map(col => (
                   <th
                     key={col.key}
