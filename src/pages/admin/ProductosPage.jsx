@@ -59,7 +59,7 @@ export default function ProductosPage() {
       if (filters.descripcion && !desc.includes(filters.descripcion.toLowerCase())) return false;
       if (filters.precioMin !== '' && p.precio < parseFloat(filters.precioMin)) return false;
       if (filters.precioMax !== '' && p.precio > parseFloat(filters.precioMax)) return false;
-      if (filters.stockMin !== '' && stockActual < parseInt(filters.stockMin)) return false;
+      if (filters.stockMin !== '' && p.stockActual < parseInt(filters.stockMin)) return false;
       return true;
     });
   }, [productos, filters]);
