@@ -10,7 +10,6 @@ function CartItem({ item, clienteId, onUpdate, onRemove }) {
   const [updating, setUpdating] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [localError, setLocalError] = useState(null);
-  const { toasts, showToast, removeToast } = useToast();
 
   const handleCantidad = async (delta) => {
     const nuevaCantidad = (item.cantidad || 1) + delta;
@@ -48,6 +47,12 @@ function CartItem({ item, clienteId, onUpdate, onRemove }) {
   const cantidad = item.cantidad || 1;
   const subtotal = precio * cantidad;
 
+  // Error 4 — distinguir si el item es un kit o un producto suelto
+  const esKit = Boolean(item.kitId);
+  const nombre = esKit
+    ? (item.kitNombre || item.nombre || '—')
+    : (item.nombre || item.productoNombre || item.producto?.nombre || '—');
+
   return (
     <div style={{
       display: 'flex',
@@ -58,23 +63,33 @@ function CartItem({ item, clienteId, onUpdate, onRemove }) {
       background: localError ? 'var(--danger-dim)' : 'transparent',
       transition: 'background 0.2s',
     }}>
-      {/* Image */}
+      {/* Image / Kit icon */}
       <div style={{
         width: 56, height: 56, borderRadius: 8, flexShrink: 0,
-        background: 'var(--surface2)', border: '1px solid var(--border2)',
+        background: esKit ? 'var(--accent-dim)' : 'var(--surface2)',
+        border: `1px solid ${esKit ? 'var(--accent-border)' : 'var(--border2)'}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
       }}>
-        {item.imagenUrl ? (
-          <img src={item.imagenUrl} alt={item.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        {!esKit && item.imagenUrl ? (
+          <img src={item.imagenUrl} alt={nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <i className="ti ti-package" style={{ color: 'var(--text-dim)', fontSize: 20 }} />
+          <i
+            className={esKit ? 'ti ti-box-multiple' : 'ti ti-package'}
+            style={{ color: esKit ? 'var(--accent)' : 'var(--text-dim)', fontSize: 20 }}
+          />
         )}
       </div>
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {item.nombre || item.productoNombre || item.producto?.nombre || '—'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          {/* Badge KIT solo para items de kit */}
+          {esKit && (
+            <span className="badge badge-accent" style={{ fontSize: 10, padding: '2px 6px' }}>KIT</span>
+          )}
+          <div style={{ fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {nombre}
+          </div>
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-sec)' }}>
           ${precio.toFixed(2)} c/u
@@ -147,6 +162,17 @@ export default function CarritoPage() {
     return sum + precio * (i.cantidad || 1);
   }, 0);
 
+  const cantidadKits = items.filter(i => i.kitId).length;
+  const cantidadProductos = items.filter(i => !i.kitId).length;
+
+  const subtitleText = () => {
+    if (items.length === 0) return 'Tu carrito';
+    const partes = [];
+    if (cantidadProductos > 0) partes.push(`${cantidadProductos} producto(s)`);
+    if (cantidadKits > 0) partes.push(`${cantidadKits} kit(s)`);
+    return partes.join(' · ');
+  };
+
   if (loading) return <LoadingSpinner message="Cargando carrito..." />;
 
   return (
@@ -159,7 +185,7 @@ export default function CarritoPage() {
             <i className="ti ti-shopping-cart" style={{ marginRight: 8, color: 'var(--accent)' }} />
             Mi carrito
           </h1>
-          <p className="page-subtitle">{items.length > 0 ? `${items.length} producto(s)` : 'Tu carrito'}</p>
+          <p className="page-subtitle">{subtitleText()}</p>
         </div>
         {items.length > 0 && (
           <span className="badge badge-accent">{items.length} ítem(s)</span>

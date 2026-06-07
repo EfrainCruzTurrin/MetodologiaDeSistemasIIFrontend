@@ -108,6 +108,22 @@ export const eliminarItemCarrito = (carritoId, itemId) =>
 export const getCarrito = (carritoId) =>
   fetch(`${BASE_URL}/api/carrito/${carritoId}`, { headers: authHeaders() }).then(r => r.json());
 
+export const addKitToCarrito = async (carritoId, kitId, cantidad = 1) => {
+  // 1. Usamos BASE_URL
+  const response = await fetch(`${BASE_URL}/api/carrito/${carritoId}/kits`, {
+    method: 'POST',
+    // 2. Reemplazamos los headers fijos por authHeaders() 👇
+    headers: authHeaders(), 
+    body: JSON.stringify({ kitId, cantidad }),
+  });
+
+  if (!response.ok) {
+    // Esto te ayudará a ver en la consola el error real que devuelve el backend (ej: "Stock insuficiente")
+    const error = await response.text();
+    throw new Error(error || 'Error al agregar el kit al carrito');
+  }
+};
+
 // ── Pedidos ──
 export const confirmarPedido = (data) =>
   fetch(`${BASE_URL}/api/pedidos`, {
@@ -183,6 +199,18 @@ export const crearKit = (data) =>
 
 export const getKits = () =>
   fetch(`${BASE_URL}/api/kits`, { headers: authHeaders() }).then(r => r.json());
+
+export const deleteKit = async (id) => {
+  // Configurado correctamente con BASE_URL 👇
+  const response = await fetch(`${BASE_URL}/api/kits/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(), // Recomiendo agregar headers si tu backend pide token para borrar
+  });
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(error || 'Error al eliminar el kit');
+  }
+};
 
 // ── Direcciones de envío ──
 export const registrarDireccionEnvio = (clienteId, data) =>

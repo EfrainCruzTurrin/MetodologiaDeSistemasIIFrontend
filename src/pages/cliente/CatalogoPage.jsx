@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProductos, getKits, agregarProductoCarrito } from '../../api/api';
+// Error 4 — agregado addKitToCarrito, ya no se itera por productos del kit
+import { getProductos, getKits, agregarProductoCarrito, addKitToCarrito } from '../../api/api';
 import { useCliente } from '../../context/ClienteContext';
 
 const MARCAS_COLORES = [
@@ -181,7 +182,6 @@ export default function CatalogoPage() {
     setFiltrados(lista);
   }, [busqueda, marcaFiltro, soloDisponibles, ordenPrecio, productos]);
 
-  // Mapa productoId -> stockActual para calcular stock de kits
   const stockMap = Object.fromEntries(productos.map(p => [p.id, p.stockActual]));
 
   const marcas = [...new Set(productos.map(p => p.marca).filter(Boolean))];
@@ -199,17 +199,18 @@ export default function CatalogoPage() {
     }
   }
 
+  // Error 4 — antes iteraba kit.productos y llamaba agregarProductoCarrito por cada uno
+  // (precio individual de cada producto, no el precio del kit).
+  // Ahora llama al endpoint POST /api/carrito/{id}/kits → un solo ítem con el precio del kit.
   async function handleAgregarKit(kit) {
-    // Agregar cada componente del kit al carrito
     try {
-      for (const kp of kit.productos) {
-        setCarrito(prev => {
-          const existe = prev.find(i => i.id === kp.productoId);
-          if (existe) return prev.map(i => i.id === kp.productoId ? { ...i, cantidad: i.cantidad + kp.cantidad } : i);
-          return [...prev, { id: kp.productoId, cantidad: kp.cantidad }];
-        });
-        await agregarProductoCarrito(carritoId, { productoId: kp.productoId, cantidad: kp.cantidad });
-      }
+      await addKitToCarrito(carritoId, kit.id, 1);
+      // Actualizar el contador local del carrito (1 ítem kit = 1 unidad en el badge)
+      setCarrito(prev => {
+        const existe = prev.find(i => i.kitId === kit.id);
+        if (existe) return prev.map(i => i.kitId === kit.id ? { ...i, cantidad: i.cantidad + 1 } : i);
+        return [...prev, { kitId: kit.id, nombre: kit.nombre, cantidad: 1 }];
+      });
     } catch (err) {
       console.error('Error al agregar kit al carrito:', err);
     }

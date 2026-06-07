@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProductos, getKits, crearKit } from '../../api/api';
+import { getProductos, getKits, crearKit, deleteKit } from '../../api/api';
 import LoadingSpinner, { InlineSpinner } from '../../components/shared/LoadingSpinner';
 import Toast from '../../components/shared/Toast';
 import { useToast } from '../../hooks/useToast';
@@ -11,10 +11,13 @@ export default function KitsPage() {
   const { toasts, showToast, removeToast } = useToast();
 
   const [form, setForm] = useState({ nombre: '', precio: '' });
-  const [componentes, setComponentes] = useState([]); // [{id, tipo, nombre, precio}]
+  const [componentes, setComponentes] = useState([]);
   const [selectedItem, setSelectedItem] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Error 3 — estado para manejar el kit que se está eliminando
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     Promise.all([getProductos(), getKits()])
@@ -75,6 +78,21 @@ export default function KitsPage() {
       showToast(err?.message || 'Error al crear el kit.', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Error 3 — handler para eliminar kit con confirmación
+  const handleDeleteKit = async (kit) => {
+    if (!window.confirm(`¿Eliminar el kit "${kit.nombre}"? Esta acción no se puede deshacer.`)) return;
+    setDeletingId(kit.id);
+    try {
+      await deleteKit(kit.id);
+      setKits(prev => prev.filter(k => k.id !== kit.id));
+      showToast(`Kit "${kit.nombre}" eliminado.`, 'success');
+    } catch (err) {
+      showToast(err?.message || 'Error al eliminar el kit.', 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -219,6 +237,8 @@ export default function KitsPage() {
                 <th>Nombre</th>
                 <th>Precio</th>
                 <th>Componentes</th>
+                {/* Error 3 — columna acciones */}
+                <th style={{ width: 80, textAlign: 'center' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -231,6 +251,20 @@ export default function KitsPage() {
                     <span style={{ color: 'var(--text-sec)', fontSize: 12 }}>
                       {k.productos?.length ?? 0} componente(s)
                     </span>
+                  </td>
+                  {/* Error 3 — botón eliminar */}
+                  <td style={{ textAlign: 'center' }}>
+                    <button
+                      className="btn btn-ghost"
+                      title="Eliminar kit"
+                      disabled={deletingId === k.id}
+                      onClick={() => handleDeleteKit(k)}
+                      style={{ color: 'var(--danger)', padding: '4px 8px' }}
+                    >
+                      {deletingId === k.id
+                        ? <InlineSpinner size={13} />
+                        : <i className="ti ti-trash" />}
+                    </button>
                   </td>
                 </tr>
               ))}
