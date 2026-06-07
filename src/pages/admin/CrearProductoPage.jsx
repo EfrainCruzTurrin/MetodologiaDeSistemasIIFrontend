@@ -19,6 +19,7 @@ export default function CrearProductoPage() {
   const [form, setForm] = useState({
     nombre: '',
     marca: '',
+    descripcion: '',
     precio: '',
     stockActual: '',
     stockMinimo: '',
@@ -45,6 +46,7 @@ export default function CrearProductoPage() {
     const data = {
       nombre: form.nombre.trim(),
       marca: form.marca.trim(),
+      descripcion: form.descripcion.trim() || null,
       precio: parseFloat(form.precio),
       stockActual: parseInt(form.stockActual),
       stockMinimo: parseInt(form.stockMinimo),
@@ -91,6 +93,7 @@ export default function CrearProductoPage() {
             {[
               ['Nombre', success.nombre],
               ['Marca', success.marca],
+              ...(success.descripcion ? [['Descripción', success.descripcion]] : []),
               ['Precio', `$${success.precio.toFixed(2)}`],
               ['Stock actual', `${success.stockActual} unidades`],
               ['Stock mínimo', `${success.stockMinimo} unidades`],
@@ -158,6 +161,18 @@ export default function CrearProductoPage() {
               placeholder="Ej: Snazaroo"
             />
             {errors.marca && <div className="field-error">{errors.marca}</div>}
+          </div>
+
+          {/* Descripción */}
+          <div className="field">
+            <label>Descripción <span style={{ color: 'var(--text-sec)', fontWeight: 400, fontSize: 12 }}>(opcional)</span></label>
+            <textarea
+              rows={3}
+              value={form.descripcion}
+              onChange={e => handleField('descripcion', e.target.value)}
+              placeholder="Ej: Pintura apta para piel sensible, resistente al agua…"
+              style={{ resize: 'vertical', minHeight: 72 }}
+            />
           </div>
 
           {/* Precio */}

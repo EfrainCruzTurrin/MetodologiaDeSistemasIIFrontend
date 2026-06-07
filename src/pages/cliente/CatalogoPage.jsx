@@ -52,6 +52,11 @@ function ProductoCard({ producto, onAgregar }) {
           <StockBadge stock={producto.stockActual} minimo={producto.stockMinimo} />
         </div>
         <h3 style={styles.cardTitle}>{producto.nombre}</h3>
+        {producto.descripcion && (
+          <p style={{ fontSize: 12, color: '#888', margin: '2px 0 0', lineHeight: 1.4 }}>
+            {producto.descripcion}
+          </p>
+        )}
         <p style={styles.cardPrice}>${Number(producto.precio).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</p>
         <div style={styles.cardFooter}>
           <span style={styles.stockInfo}>
