@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getProductos } from '../../api/api';
+import { getProductos, actualizarStockProducto } from '../../api/api';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 
 function StockBadge({ stock }) {
@@ -17,19 +17,80 @@ function SortIcon({ col, sortCol, sortDir }) {
     : <i className="ti ti-sort-descending" style={{ fontSize: 11, color: 'var(--accent)' }} />;
 }
 
+// ── Modal edición de stock ────────────────────────────────────────────────────
+function EditStockModal({ producto, onClose, onSave }) {
+  const [valor, setValor] = useState(producto.stockActual ?? 0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSave = async () => {
+    const num = parseInt(valor, 10);
+    if (isNaN(num) || num < 0) { setError('Ingresá un número válido (≥ 0).'); return; }
+    setSaving(true);
+    try {
+      const updated = await actualizarStockProducto(producto.id, num);
+      onSave(updated);
+    } catch (e) {
+      setError(e?.message || 'Error al actualizar el stock.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+    }}>
+      <div style={{
+        background: 'var(--surface)', border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)', padding: 28, width: 340, boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      }}>
+        <h3 style={{ margin: '0 0 4px', fontSize: 16 }}>Modificar stock</h3>
+        <p style={{ margin: '0 0 20px', color: 'var(--text-sec)', fontSize: 13 }}>
+          {producto.nombre}
+        </p>
+
+        <div className="field">
+          <label>Stock actual</label>
+          <input
+            type="number"
+            min="0"
+            value={valor}
+            onChange={e => { setValor(e.target.value); setError(null); }}
+            autoFocus
+          />
+        </div>
+
+        {error && (
+          <p style={{ color: 'var(--danger)', fontSize: 12, margin: '4px 0 12px' }}>
+            <i className="ti ti-alert-circle" style={{ marginRight: 4 }} />{error}
+          </p>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
+          <button className="btn btn-ghost btn-sm" onClick={onClose} disabled={saving}>
+            Cancelar
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
+            {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Página principal ──────────────────────────────────────────────────────────
 export default function ProductosPage() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editando, setEditando] = useState(null); // producto seleccionado para editar stock
 
   const [filters, setFilters] = useState({
-    nombre: '',
-    descripcion: '',
-    precioMin: '',
-    precioMax: '',
-    stockMin: '',
+    nombre: '', descripcion: '', precioMin: '', precioMax: '', stockMin: '',
   });
-
   const [sortCol, setSortCol] = useState('nombre');
   const [sortDir, setSortDir] = useState('asc');
 
@@ -41,15 +102,17 @@ export default function ProductosPage() {
   }, []);
 
   const handleSort = (col) => {
-    if (sortCol === col) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortCol(col);
-      setSortDir('asc');
-    }
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('asc'); }
   };
 
   const setFilter = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
+
+  // Cuando el modal guarda, reemplazamos el producto en el array local (sin refetch)
+  const handleStockSaved = (updatedProducto) => {
+    setProductos(prev => prev.map(p => p.id === updatedProducto.id ? updatedProducto : p));
+    setEditando(null);
+  };
 
   const filtered = useMemo(() => {
     return productos.filter(p => {
@@ -66,7 +129,8 @@ export default function ProductosPage() {
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
-      let va = a[sortCol], vb = b[sortCol];
+      const field = sortCol === 'stock' ? 'stockActual' : sortCol;
+      let va = a[field], vb = b[field];
       if (typeof va === 'string') va = va.toLowerCase();
       if (typeof vb === 'string') vb = vb.toLowerCase();
       if (va < vb) return sortDir === 'asc' ? -1 : 1;
@@ -89,6 +153,14 @@ export default function ProductosPage() {
 
   return (
     <div className="page">
+      {editando && (
+        <EditStockModal
+          producto={editando}
+          onClose={() => setEditando(null)}
+          onSave={handleStockSaved}
+        />
+      )}
+
       <div className="page-header">
         <div>
           <h1 className="page-title">
@@ -120,46 +192,23 @@ export default function ProductosPage() {
       }}>
         <div className="field" style={{ flex: '1 1 150px' }}>
           <label>Nombre</label>
-          <input
-            value={filters.nombre}
-            onChange={e => setFilter('nombre', e.target.value)}
-            placeholder="Buscar..."
-          />
+          <input value={filters.nombre} onChange={e => setFilter('nombre', e.target.value)} placeholder="Buscar..." />
         </div>
         <div className="field" style={{ flex: '1 1 150px' }}>
           <label>Descripción</label>
-          <input
-            value={filters.descripcion}
-            onChange={e => setFilter('descripcion', e.target.value)}
-            placeholder="Buscar..."
-          />
+          <input value={filters.descripcion} onChange={e => setFilter('descripcion', e.target.value)} placeholder="Buscar..." />
         </div>
         <div className="field" style={{ flex: '0 0 100px' }}>
           <label>Precio mín</label>
-          <input
-            type="number" min="0"
-            value={filters.precioMin}
-            onChange={e => setFilter('precioMin', e.target.value)}
-            placeholder="$0"
-          />
+          <input type="number" min="0" value={filters.precioMin} onChange={e => setFilter('precioMin', e.target.value)} placeholder="$0" />
         </div>
         <div className="field" style={{ flex: '0 0 100px' }}>
           <label>Precio máx</label>
-          <input
-            type="number" min="0"
-            value={filters.precioMax}
-            onChange={e => setFilter('precioMax', e.target.value)}
-            placeholder="$∞"
-          />
+          <input type="number" min="0" value={filters.precioMax} onChange={e => setFilter('precioMax', e.target.value)} placeholder="$∞" />
         </div>
         <div className="field" style={{ flex: '0 0 100px' }}>
           <label>Stock mín</label>
-          <input
-            type="number" min="0"
-            value={filters.stockMin}
-            onChange={e => setFilter('stockMin', e.target.value)}
-            placeholder="0"
-          />
+          <input type="number" min="0" value={filters.stockMin} onChange={e => setFilter('stockMin', e.target.value)} placeholder="0" />
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button
@@ -185,22 +234,19 @@ export default function ProductosPage() {
             <thead>
               <tr>
                 {[
-                  { key: 'nombre', label: 'Nombre' },
+                  { key: 'nombre',      label: 'Nombre' },
                   { key: 'descripcion', label: 'Descripción' },
-                  { key: 'precio', label: 'Precio' },
-                  { key: 'stockActual', label: 'Stock' },
+                  { key: 'precio',      label: 'Precio' },
+                  { key: 'stock',       label: 'Stock' },
                 ].map(col => (
-                  <th
-                    key={col.key}
-                    className="sortable"
-                    onClick={() => handleSort(col.key)}
-                  >
+                  <th key={col.key} className="sortable" onClick={() => handleSort(col.key)}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                       {col.label}
                       <SortIcon col={col.key} sortCol={sortCol} sortDir={sortDir} />
                     </span>
                   </th>
                 ))}
+                <th style={{ width: 60 }} /> {/* columna acciones */}
               </tr>
             </thead>
             <tbody>
@@ -214,6 +260,16 @@ export default function ProductosPage() {
                     ${parseFloat(p.precio || 0).toFixed(2)}
                   </td>
                   <td><StockBadge stock={p.stockActual ?? 0} /></td>
+                  <td>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      title="Modificar stock"
+                      onClick={() => setEditando(p)}
+                      style={{ padding: '4px 8px' }}
+                    >
+                      <i className="ti ti-pencil" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

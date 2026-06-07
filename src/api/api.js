@@ -54,6 +54,17 @@ export const importarImagenProducto = (id, formData) =>
     return r.json();
   });
 
+
+export const actualizarStockProducto = (id, stockActual) =>
+  fetch(`${BASE_URL}/api/productos/${id}/stock`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: JSON.stringify({ stockActual }),
+  }).then(r => {
+    if (!r.ok) return r.json().then(e => Promise.reject(e));
+    return r.json();
+  });
+
 // ── Clientes ──
 export const registrarCliente = (data) =>
   fetch(`${BASE_URL}/api/clientes/registro`, {
