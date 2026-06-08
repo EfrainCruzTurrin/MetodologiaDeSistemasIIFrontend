@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Error 4 — agregado addKitToCarrito, ya no se itera por productos del kit
 import { getProductos, getKits, agregarProductoCarrito, addKitToCarrito } from '../../api/api';
 import { useCliente } from '../../context/ClienteContext';
+import { useToast } from '../../hooks/useToast';
+import '../../styles/variables.css';
 
 const MARCAS_COLORES = [
   '#c8f55a', '#5ab4f5', '#f5c842', '#5af596', '#f55a5a',
@@ -24,25 +25,39 @@ function StockBadge({ stock, minimo }) {
   return <span style={styles.badgeOk}>Disponible</span>;
 }
 
-function ProductoCard({ producto, onAgregar }) {
+// NUEVO: Componente para cargar
+function SkeletonCard() {
+  return (
+    <div className="skeleton" style={{ ...styles.card, height: 350 }}></div>
+  );
+}
+
+function ProductoCard({ producto, onAgregar, index }) {
   const [agregado, setAgregado] = useState(false);
   const color = badgeColor(producto.marca);
 
   function handleAgregar() {
     onAgregar(producto);
     setAgregado(true);
-    setTimeout(() => setAgregado(false), 1500);
+    setTimeout(() => setAgregado(false), 2000);
   }
 
   return (
-    <div style={styles.card}>
+    <div 
+      className="hover-card fade-in-up" 
+      style={{ ...styles.card, animationDelay: `${index * 0.05}s` }}
+    >
       <div style={{ ...styles.cardAccent, background: color }} />
-      {producto.imagenUrl && (
+      {producto.imagenUrl ? (
         <img
           src={producto.imagenUrl}
           alt={producto.nombre}
           style={{ width: '100%', height: 160, objectFit: 'cover', display: 'block' }}
         />
+      ) : (
+        <div style={{ width: '100%', height: 160, background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <i className="ti ti-photo-off" style={{ fontSize: 32, color: 'var(--text-dim)' }} />
+        </div>
       )}
       <div style={styles.cardBody}>
         <div style={styles.cardHeader}>
@@ -69,7 +84,7 @@ function ProductoCard({ producto, onAgregar }) {
             disabled={producto.stockActual === 0 || agregado}
           >
             {agregado
-              ? <><i className="ti ti-check" style={{ fontSize: 14 }} /> Agregado</>
+              ? <><i className="ti ti-check" style={{ fontSize: 14 }} /> Listo</>
               : <><i className="ti ti-shopping-cart-plus" style={{ fontSize: 14 }} /> Agregar</>
             }
           </button>
@@ -79,10 +94,9 @@ function ProductoCard({ producto, onAgregar }) {
   );
 }
 
-function KitCard({ kit, onAgregar, stockMap }) {
+function KitCard({ kit, onAgregar, stockMap, index }) {
   const [agregado, setAgregado] = useState(false);
 
-  // Calcular stock disponible del kit: mínimo de floor(stockProducto / cantidad)
   const stockKit = kit.productos?.length
     ? Math.min(...kit.productos.map(kp => {
       const stock = stockMap[kp.productoId] ?? 0;
@@ -95,11 +109,14 @@ function KitCard({ kit, onAgregar, stockMap }) {
   function handleAgregar() {
     onAgregar(kit);
     setAgregado(true);
-    setTimeout(() => setAgregado(false), 1500);
+    setTimeout(() => setAgregado(false), 2000);
   }
 
   return (
-    <div style={{ ...styles.card, border: '1px solid #3a3a1a' }}>
+    <div 
+      className="hover-card fade-in-up" 
+      style={{ ...styles.card, border: '1px solid #3a3a1a', animationDelay: `${index * 0.05}s` }}
+    >
       <div style={{ ...styles.cardAccent, background: '#c8f55a' }} />
       <div style={styles.cardBody}>
         <div style={styles.cardHeader}>
@@ -128,7 +145,7 @@ function KitCard({ kit, onAgregar, stockMap }) {
             disabled={sinStock || agregado}
           >
             {agregado
-              ? <><i className="ti ti-check" style={{ fontSize: 14 }} /> Agregado</>
+              ? <><i className="ti ti-check" style={{ fontSize: 14 }} /> Listo</>
               : <><i className="ti ti-shopping-cart-plus" style={{ fontSize: 14 }} /> Agregar</>
             }
           </button>
@@ -141,6 +158,9 @@ function KitCard({ kit, onAgregar, stockMap }) {
 export default function CatalogoPage() {
   const { carritoId } = useCliente();
   const navigate = useNavigate();
+  
+  // Asumiendo que tu hook retorna { addToast } o similar. Ajustalo según tu implementación.
+  const { addToast } = useToast(); 
 
   const [productos, setProductos] = useState([]);
   const [kits, setKits] = useState([]);
@@ -188,7 +208,6 @@ export default function CatalogoPage() {
   }, [busqueda, marcaFiltro, soloDisponibles, ordenPrecio, productos]);
 
   const stockMap = Object.fromEntries(productos.map(p => [p.id, p.stockActual]));
-
   const marcas = [...new Set(productos.map(p => p.marca).filter(Boolean))];
 
   async function handleAgregar(producto) {
@@ -199,30 +218,29 @@ export default function CatalogoPage() {
     });
     try {
       await agregarProductoCarrito(carritoId, { productoId: producto.id, cantidad: 1 });
+      addToast({ type: 'success', message: `${producto.nombre} agregado al carrito` });
     } catch (err) {
       console.error('Error al agregar al carrito:', err);
+      addToast({ type: 'error', message: `No se pudo agregar ${producto.nombre}` });
     }
   }
 
-  // Error 4 — antes iteraba kit.productos y llamaba agregarProductoCarrito por cada uno
-  // (precio individual de cada producto, no el precio del kit).
-  // Ahora llama al endpoint POST /api/carrito/{id}/kits → un solo ítem con el precio del kit.
   async function handleAgregarKit(kit) {
     try {
       await addKitToCarrito(carritoId, kit.id, 1);
-      // Actualizar el contador local del carrito (1 ítem kit = 1 unidad en el badge)
       setCarrito(prev => {
         const existe = prev.find(i => i.kitId === kit.id);
         if (existe) return prev.map(i => i.kitId === kit.id ? { ...i, cantidad: i.cantidad + 1 } : i);
         return [...prev, { kitId: kit.id, nombre: kit.nombre, cantidad: 1 }];
       });
+      addToast({ type: 'success', message: `Kit ${kit.nombre} agregado al carrito` });
     } catch (err) {
       console.error('Error al agregar kit al carrito:', err);
+      addToast({ type: 'error', message: `No se pudo agregar el kit ${kit.nombre}` });
     }
   }
 
   const totalCarrito = carrito.reduce((acc, i) => acc + i.cantidad, 0);
-
   const kitsParaMostrar = verKits ? kits : [];
   const productosFiltradosParaMostrar = verKits ? [] : filtrados;
 
@@ -232,7 +250,7 @@ export default function CatalogoPage() {
         <div>
           <h1 style={styles.pageTitle}>Catálogo</h1>
           <p style={styles.pageSubtitle}>
-            {cargando ? 'Cargando…'
+            {cargando ? 'Buscando inventario…'
               : verKits
                 ? `${kits.length} kit${kits.length !== 1 ? 's' : ''} disponible${kits.length !== 1 ? 's' : ''}`
                 : `${filtrados.length} producto${filtrados.length !== 1 ? 's' : ''} encontrado${filtrados.length !== 1 ? 's' : ''}`}
@@ -245,7 +263,6 @@ export default function CatalogoPage() {
         </button>
       </div>
 
-      {/* Tabs Productos / Kits */}
       <div style={{ display: 'flex', gap: 8, padding: '0 2rem', marginTop: 16 }}>
         <button
           style={{ ...styles.tab, ...(verKits ? {} : styles.tabActive) }}
@@ -268,7 +285,6 @@ export default function CatalogoPage() {
         </button>
       </div>
 
-      {/* Filtros solo para productos */}
       {!verKits && (
         <div style={styles.filtros}>
           <div style={styles.searchWrap}>
@@ -307,13 +323,6 @@ export default function CatalogoPage() {
         </div>
       )}
 
-      {cargando && (
-        <div style={styles.estadoWrap}>
-          <div style={styles.spinner} />
-          <p style={styles.estadoTexto}>Cargando…</p>
-        </div>
-      )}
-
       {!cargando && error && (
         <div style={styles.errorBox}>
           <i className="ti ti-alert-circle" style={{ fontSize: 20, marginRight: 10 }} />
@@ -321,40 +330,38 @@ export default function CatalogoPage() {
         </div>
       )}
 
-      {!cargando && !error && (
-        <>
-          {verKits ? (
-            kits.length === 0 ? (
-              <div style={styles.estadoWrap}>
-                <i className="ti ti-package-off" style={{ fontSize: 40, color: '#555', marginBottom: 12 }} />
-                <p style={styles.estadoTexto}>No hay kits disponibles.</p>
-              </div>
-            ) : (
-              <div style={styles.grid}>
-                {kits.map(k => (
-                  <KitCard key={k.id} kit={k} onAgregar={handleAgregarKit} stockMap={stockMap} />
-                ))}
-              </div>
-            )
+      {/* Uso de Grid general para Skeletons o Contenido */}
+      <div style={styles.grid}>
+        {cargando ? (
+          // Renderiza 8 Skeletons mientras carga
+          Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={`skel-${i}`} />)
+        ) : verKits ? (
+          kits.length === 0 ? (
+            <div style={{ ...styles.estadoWrap, gridColumn: '1 / -1' }}>
+              <i className="ti ti-package-off" style={{ fontSize: 40, color: '#555', marginBottom: 12 }} />
+              <p style={styles.estadoTexto}>No hay kits disponibles.</p>
+            </div>
           ) : (
-            productosFiltradosParaMostrar.length === 0 ? (
-              <div style={styles.estadoWrap}>
-                <i className="ti ti-mood-sad" style={{ fontSize: 40, color: '#555', marginBottom: 12 }} />
-                <p style={styles.estadoTexto}>No se encontraron productos.</p>
-                <button style={styles.resetBtn} onClick={() => { setBusqueda(''); setMarcaFiltro(''); setSoloDisponibles(false); setOrdenPrecio(''); }}>
-                  Limpiar filtros
-                </button>
-              </div>
-            ) : (
-              <div style={styles.grid}>
-                {productosFiltradosParaMostrar.map(p => (
-                  <ProductoCard key={p.id} producto={p} onAgregar={handleAgregar} />
-                ))}
-              </div>
-            )
-          )}
-        </>
-      )}
+            kits.map((k, index) => (
+              <KitCard key={k.id} kit={k} onAgregar={handleAgregarKit} stockMap={stockMap} index={index} />
+            ))
+          )
+        ) : (
+          productosFiltradosParaMostrar.length === 0 ? (
+            <div style={{ ...styles.estadoWrap, gridColumn: '1 / -1' }}>
+              <i className="ti ti-mood-sad" style={{ fontSize: 40, color: '#555', marginBottom: 12 }} />
+              <p style={styles.estadoTexto}>No se encontraron productos.</p>
+              <button style={styles.resetBtn} onClick={() => { setBusqueda(''); setMarcaFiltro(''); setSoloDisponibles(false); setOrdenPrecio(''); }}>
+                Limpiar filtros
+              </button>
+            </div>
+          ) : (
+            productosFiltradosParaMostrar.map((p, index) => (
+              <ProductoCard key={p.id} producto={p} onAgregar={handleAgregar} index={index} />
+            ))
+          )
+        )}
+      </div>
     </div>
   );
 }
@@ -364,19 +371,19 @@ const styles = {
   topBar: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '2rem 2rem 0', gap: 16, flexWrap: 'wrap' },
   pageTitle: { margin: '0 0 4px', fontSize: 28, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' },
   pageSubtitle: { margin: 0, fontSize: 14, color: '#888' },
-  carritoBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '10px 18px', background: '#c8f55a', color: '#0f0f11', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', position: 'relative', letterSpacing: '0.3px' },
+  carritoBtn: { display: 'flex', alignItems: 'center', gap: 4, padding: '10px 18px', background: '#c8f55a', color: '#0f0f11', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: 'pointer', position: 'relative', letterSpacing: '0.3px', transition: 'transform 0.1s' },
   carritoCount: { background: '#0f0f11', color: '#c8f55a', borderRadius: '50%', width: 20, height: 20, fontSize: 11, fontWeight: 800, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   tab: { display: 'flex', alignItems: 'center', padding: '8px 16px', background: 'transparent', border: '1px solid #2a2a2e', borderRadius: 8, color: '#888', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' },
   tabActive: { background: '#c8f55a18', border: '1px solid #c8f55a55', color: '#c8f55a' },
   filtros: { display: 'flex', flexWrap: 'wrap', gap: 10, padding: '1.5rem 2rem', alignItems: 'center', borderBottom: '1px solid #222' },
   searchWrap: { position: 'relative', flex: '1 1 220px', minWidth: 200 },
   searchIcon: { position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#666', pointerEvents: 'none' },
-  searchInput: { width: '100%', padding: '9px 36px 9px 36px', background: '#18181c', border: '1px solid #2a2a2e', borderRadius: 8, color: '#e8e8e8', fontSize: 14, boxSizing: 'border-box', outline: 'none' },
+  searchInput: { width: '100%', padding: '9px 36px 9px 36px', background: '#18181c', border: '1px solid #2a2a2e', borderRadius: 8, color: '#e8e8e8', fontSize: 14, boxSizing: 'border-box', outline: 'none', transition: 'border-color 0.2s' },
   clearBtn: { position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center' },
   select: { padding: '9px 12px', background: '#18181c', border: '1px solid #2a2a2e', borderRadius: 8, color: '#e8e8e8', fontSize: 14, cursor: 'pointer', outline: 'none' },
   toggleLabel: { display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#bbb', userSelect: 'none' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20, padding: '2rem' },
-  card: { background: '#18181c', borderRadius: 12, overflow: 'hidden', border: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column', transition: 'border-color 0.2s, transform 0.15s' },
+  card: { background: '#18181c', borderRadius: 12, overflow: 'hidden', border: '1px solid #2a2a2e', display: 'flex', flexDirection: 'column' },
   cardAccent: { height: 4, width: '100%' },
   cardBody: { padding: '1rem 1.1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 },
   cardHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' },
@@ -388,16 +395,11 @@ const styles = {
   cardPrice: { margin: 0, fontSize: 22, fontWeight: 700, color: '#fff', letterSpacing: '-0.5px' },
   cardFooter: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 10, borderTop: '1px solid #222', gap: 8 },
   stockInfo: { fontSize: 12, color: '#666', display: 'flex', alignItems: 'center' },
-  btnAgregar: { display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#c8f55a', color: '#0f0f11', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'pointer' },
+  btnAgregar: { display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#c8f55a', color: '#0f0f11', border: 'none', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'background 0.2s' },
   btnAgregado: { display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#1a2e1a', color: '#5af596', border: '1px solid #2a4a2a', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'default' },
   btnDisabled: { display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#1a1a1a', color: '#444', border: '1px solid #222', borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: 'not-allowed' },
   estadoWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', gap: 12 },
   estadoTexto: { color: '#666', fontSize: 15, margin: 0 },
   errorBox: { display: 'flex', alignItems: 'center', margin: '2rem', padding: '1rem 1.25rem', background: '#2e1a1a', border: '1px solid #4a2a2a', borderRadius: 8, color: '#f55a5a', fontSize: 14 },
-  resetBtn: { marginTop: 8, padding: '8px 20px', background: 'transparent', border: '1px solid #444', borderRadius: 6, color: '#bbb', fontSize: 13, cursor: 'pointer' },
-  spinner: { width: 32, height: 32, border: '3px solid #2a2a2e', borderTopColor: '#c8f55a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
+  resetBtn: { marginTop: 8, padding: '8px 20px', background: 'transparent', border: '1px solid #444', borderRadius: 6, color: '#bbb', fontSize: 13, cursor: 'pointer', transition: 'background 0.2s' },
 };
-
-const spinStyle = document.createElement('style');
-spinStyle.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
-document.head.appendChild(spinStyle);
